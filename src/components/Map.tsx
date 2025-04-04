@@ -1,39 +1,19 @@
-import { useMemo, useState, useCallback } from 'react';
+// Map.tsx
 import DeckGL from '@deck.gl/react';
 import { ScatterplotLayer } from '@deck.gl/layers';
-import MapGL, {ViewState} from 'react-map-gl';
-import Supercluster from 'supercluster';
+import MapGL from 'react-map-gl';
 import { Place } from '../types/types';
 
 const MAP_STYLE = 'mapbox://styles/mapbox/light-v10';
 
 export const MapComponent = ({ data }: { data: Place[] }) => {
-    const [viewState, setViewState] = useState<ViewState>({
+    const initialViewState = {
         longitude: -98.5795,
         latitude: 39.8283,
         zoom: 3,
         pitch: 0,
         bearing: 0,
-    });
-
-    const onViewStateChange = useCallback((params: { viewState: ViewState }) => {
-        setViewState(params.viewState);
-    }, []);
-
-    const cluster = useMemo(() => {
-        const index = new Supercluster({
-            radius: 40,
-            maxZoom: 16,
-        });
-        index.load(
-            data.map(place => ({
-                type: 'Feature',
-                geometry: { type: 'Point', coordinates: [place.longitude, place.latitude] },
-                properties: place,
-            }))
-        );
-        return index;
-    }, [data]);
+    };
 
     const layers = [
         new ScatterplotLayer({
@@ -52,22 +32,19 @@ export const MapComponent = ({ data }: { data: Place[] }) => {
     ];
 
     return (
-        <DeckGL
-            initialViewState={viewState}
-            viewState={viewState}
-            onViewStateChange={(params) => {
-                const newViewState = params.viewState as ViewState;
-                setViewState(newViewState);
-            }}
-            controller={true}
-            layers={layers}
-        >
-            <MapGL
-                mapStyle={MAP_STYLE}
-                mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
-          getCursor={({ isDragging }) => (isDragging ? 'grabbing' : 'grab')}
-          onResize={() => {}}
-            />
-        </DeckGL>
+        <div style={{ height: '100%', width: '100%' }}>
+            <DeckGL
+                initialViewState={initialViewState}
+                controller={true}
+                layers={layers}
+            >
+                <MapGL
+                    mapStyle={MAP_STYLE}
+                    mapboxApiAccessToken={process.env.REACT_APP_MAPBOX_TOKEN}
+                    style={{ width: '100%', height: '100%' }}
+                    getCursor={({ isDragging }) => (isDragging ? 'grabbing' : 'grab')}
+                />
+            </DeckGL>
+        </div>
     );
 };
